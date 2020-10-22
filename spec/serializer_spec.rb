@@ -19,7 +19,7 @@ RSpec.describe Parser::Serializer do
     expect(help_page[:unique_views]).to eq(page_count)
   end
 
-  it 'includes every single log' do
+  it 'calculates views correctly' do
     expect(subject.values.map { |h| h[:views] }.sum).to eq(parsed_logs.size)
   end
 end
