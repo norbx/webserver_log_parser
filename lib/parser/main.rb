@@ -1,50 +1,31 @@
 module Parser
   class Main
-    def initialize(csv, sort_by = :views)
-      @csv = csv
-      @sort_by = sort_by
+    def initialize(logs, sort_key = :views, serializer = Parser::Serializer)
+      @logs = logs
+      @sort_key = sort_key.to_sym
+      @serializer = serializer
     end
 
     def call
-      parse_csv
-      serialize_results
-      sort_results
+      parse_logs
+      serialize_logs
+      sort_logs
     end
 
     private
 
-    attr_reader :csv, :sort_by
+    attr_reader :logs, :sort_key, :serializer
 
-    def parse_csv
-      @parsed_csv = csv.flatten.map(&:split)
+    def parse_logs
+      @parsed_logs = logs.flatten.map(&:split)
     end
 
-    def results
-      @results ||= {}
+    def serialize_logs
+      @serialized_logs = serializer.new(@parsed_logs).call
     end
 
-    def serialize_results
-      @parsed_csv.each do |view|
-        key = view[0]
-
-        if results.key?(key)
-          results[key][:views] += 1
-          unless results[key][:unique_visitors].include?(view[1])
-            results[key][:unique_visitors] << view[1]
-            results[key][:unique_views] += 1
-          end
-        else
-          results[key] = {
-            views: 1,
-            unique_views: 1,
-            unique_visitors: [].append(view[1])
-          }
-        end
-      end
-    end
-
-    def sort_results
-      results.sort_by { |_k, v| -v[sort_by] }.to_h
+    def sort_logs
+      @serialized_logs.sort_by { |_k, v| -v[sort_key] }.to_h
     end
   end
 end
